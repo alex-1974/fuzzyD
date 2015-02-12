@@ -1,4 +1,4 @@
-module logger;
+module proof_of_concept.pbdlogger;
 
 import std.stdio;
 /**
@@ -7,7 +7,6 @@ import std.stdio;
 * Designing extensible, modular classes
 * (see: https://molecularmusings.wordpress.com/2011/06/29/designing-extensible-modular-classes/ )
 **/
-
 class Logger(FormatPolicy, OutputPolicy)
 {
 public:
@@ -54,15 +53,4 @@ struct write2file {
   }
 };
 
-void main () {
-  alias stdoutlog = Logger!(simpleFormat,write2stdout);
-  alias filelog = Logger!(simpleFormat,write2file);
-  alias extstdoutlog = Logger!(extensiveFormat,write2stdout);
-  auto outlog = new stdoutlog();
-  outlog.Log("simple message to stdout");
-  auto flog = new filelog();
-  flog.Log("simple message to file");
-  auto extoutlog = new extstdoutlog();
-  extoutlog.Log("extensive message to stdout");
-  extoutlog.Log("another extensive message to stdout");
-}
+
