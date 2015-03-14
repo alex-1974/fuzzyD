@@ -1,0 +1,12 @@
+{
+	"name": "mixin-template-logger",
+	"description": "Examples for Mixin Template Logger in D",
+	"authors": ["Alexander Leisser"],
+	"license": "MIT",
+	"targetType": "executable",
+	"buildTypes": {
+		"unittests": {
+			"buildOptions": ["unittests", "debugMode", "debugInfo"],
+		},
+	}
+}
