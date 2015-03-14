@@ -1,0 +1,12 @@
+{
+	"name": "fuzzy",
+	"description": "Examples for fuzzy logic in D",
+	"authors": ["Alexander Leisser"],
+	"license": "MIT",
+	"targetType": "executable",
+	"buildTypes": {
+		"unittests": {
+			"buildOptions": ["unittests", "debugMode", "debugInfo"],
+		},
+	}
+}
