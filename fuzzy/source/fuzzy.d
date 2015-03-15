@@ -1,3 +1,10 @@
+/**
+*
+* See:
+* <a href="http://www.thegeekstuff.com/2014/09/fuzzy-logic-cpp/">http://www.thegeekstuff.com/2014/09/fuzzy-logic-cpp/</a>
+* <a href =""></a>
+**/
+
 module proof_of_concept.fuzzy;
 
 class DFuzzyFunction {
