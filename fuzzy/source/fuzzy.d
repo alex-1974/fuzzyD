@@ -10,11 +10,16 @@
 
 module proof_of_concept.fuzzyD;
 
+/**
+* Fuzzy Typ erlaubt Wahrheitswerte von 0 bis 1
+*
+**/
 struct fuzzy {
 
 protected:
 	double probability = 0.0;
-	//alias probability this;
+	alias probability this;
+
 public:
 	this (double val) {
 		if (val > 1.0) this.probability = 1.0;
@@ -37,48 +42,278 @@ public:
 	double getval() const {
 		return this.probability;
 	}
-	fuzzy and (fuzzy var) {
-		if (this.probability < var.probability) return fuzzy(this.probability);
-		else return fuzzy(var.probability);
+	string toString () {
+		import std.conv;
+		return to!string(this.probability);
 	}
-	fuzzy and (bool var) {
-		if (var) return fuzzy(this.probability);
-		else return fuzzy(false);
+	/** logical AND **/
+	fuzzy opBinary(string op)(in fuzzy var) const if (op == "&") {
+		return (this.probability < var.probability)? fuzzy(this.probability) : fuzzy(var.probability);
 	}
-	fuzzy or (fuzzy var) {
-		if (this.probability > var.probability) return fuzzy (this.probability);
-		else return fuzzy (var.probability);
+	fuzzy opBinary(string op)(in bool var) const if (op == "&") {
+		return (var)? fuzzy(this.probability) : fuzzy(0.0);
 	}
-	fuzzy or (bool var) {
-		if (var) return fuzzy (true);
-		else return fuzzy (this.probability);
+	/** logical OR **/
+	fuzzy opBinary(string op)(in fuzzy var) const if (op == "|") {
+		return (this.probability > var.probability)? fuzzy(this.probability) : fuzzy(var.probability);
 	}
-	fuzzy not () {
-		return fuzzy (1.0-this.probability);
+	fuzzy opBinary(string op)(in bool var) const if (op == "|") {
+		return (var)? fuzzy(1.0) : fuzzy(this.probability);
+	}
+	/** negation **/
+	fuzzy opUnary(string op)() const if (op == "-") {
+		return fuzzy(1.0-this.probability);
 	}
 };
 
 unittest {
-	auto f1 = fuzzy();
-	assert (f1.getval == 0.0);
-	f1.setval(0.5);
-	assert (f1.getval == 0.5);
-	f1.setval (1.25);
-	assert (f1.getval == 1.0);
-	f1.setval (-0.25);
-	assert (f1.getval == 0.0);
-	f1.setval(true);
-	assert (f1.getval == 1.0);
-	f1.setval(0.75);
-	auto f2 = fuzzy (0.25);
-	assert (f1.and(f2).getval == 0.25);
-	assert (f1.or(f2).getval == 0.75);
-	assert (f1.and(true).getval == 0.75);
-	assert (f1.and(false).getval == 0);
-	assert (f1.or(true).getval == 1);
-	assert (f1.or(false).getval == 0.75);
-	assert (f1.not.getval == 0.25);
-	assert (f2.not.getval == 0.75);
+	assert (fuzzy(1.0) == 1.0);
+	assert (fuzzy(false) == 0);
+	assert (fuzzy(-0.25) == 0);
+	assert (-fuzzy(0.25) == 0.75);
+	assert ((fuzzy(0.75)&fuzzy(0.25)) == 0.25);
+	assert ((fuzzy(0.75)|fuzzy(0.25)) == 0.75);
+	assert ((fuzzy(0.25)&true) == 0.25);
+	fuzzy f1 = true;
+	fuzzy f2 = 0.25;
+	assert (f1 == 1);
+	assert ((f1&f2) == 0.25);
+}
+/**
+* Type Fuzzyset erlaubt Set an Wahrheitswerten zwischen 0 bis 1
+*
+**/
+struct fuzzyset {
+	string member;
+	fuzzy value;
+};
+
+class fuzzySet {
+protected:
+	alias fuzzy delegate(double) m;
+	m[string] members;
+	string name;
+public:
+	this (string name) { this.name = name; }
+	void insert (T) (T ft) { members[ft.sName] = &ft.getValue; }
+	void remove (T) (T ft) { members.remove(ft.sName); }
+
+	fuzzyset[] get (double t) {
+		fuzzyset[] n;
+		foreach (key, func; members) {
+			fuzzyset k;
+			k.member = key;
+			k.value = func(t);
+			n ~= k;
+		}
+		return n;
+	}
+};
+
+
+class fuzzyMember (fuzzytype) {
+
+protected:
+	string  sName;
+	fuzzytype n;
+	alias n this;
+public:
+	void setInterval (double l, double r) { dLeft=l; dRight=r; }
+  void setName (string s) {
+	  sName = s;
+	}
+  bool isDotInInterval(double t) {
+		if((t>=dLeft) && (t<=dRight)) return true;
+    else return false;
+	}
+  string getName () const { return (sName); }
+  /** logical AND **/
+	fuzzyMember opBinary(string op)(fuzzyMember var) const if (op == "&") {
+		import std.stdio;
+		writeln (var.sName);
+		return var;
+	}
+};
+
+struct triangle {
+private:
+	double dMiddle, dLeft, dRight;
+public:
+	void setMiddle(double dL, double dR) { dMiddle=dL; }
+	fuzzy getValue(double t) {
+		if      (t<=dLeft)    return fuzzy(0);
+		else if (t<dMiddle)   return fuzzy((t-dLeft)/(dMiddle-dLeft));
+		else if (t==dMiddle)  return fuzzy(1.0);
+		else if (t<dRight)    return fuzzy((dRight-t)/(dRight-dMiddle));
+		else                  return fuzzy(0);
+	}
+};
+struct trapezoid {
+private:
+	double dLeftMiddle, dRightMiddle, dLeft, dRight;
+public:
+  void setMiddle (double dL, double dR) {
+		dLeftMiddle=dL; dRightMiddle=dR;
+	}
+	fuzzy getValue(double t) {
+		if      (t<=dLeft)        return fuzzy(0);
+		else if (t<dLeftMiddle)   return fuzzy((t-dLeft)/(dLeftMiddle-dLeft));
+		else if (t<=dRightMiddle) return fuzzy(1.0);
+		else if (t<dRight)        return fuzzy((dRight-t)/(dRight-dRightMiddle));
+		else                      return fuzzy(0);
+	}
+};
+
+unittest {
 }
 
-void main () {}
+struct rule {
+	alias fuzzy delegate(double) inf;
+	alias fuzzy delegate(double) outf;
+	inf i;
+	outf o;
+	string oname;
+};
+/**
+* WENN ... DANN ...
+* WENN in-fuzzyset (member ...) DANN out-fuzzyset (member)
+* bei WENN ... UND ... DANN ...
+* WENN wird zu in-fuzzyset = fuzzysetA und fuzzysetB
+**/
+class fuzzyRules {
+	import std.stdio;
+	rule[] ruleset;
+	// empfangt die fuzzyMembers
+	void addrule (T,U) (T infuzzy, U outfuzzy) {
+		// zB abstand:niedrig, bremskraft:hoch
+		rule r;
+		r.i = &infuzzy.getValue;
+		r.o = &outfuzzy.getValue;
+		r.oname = outfuzzy.getName;
+		ruleset ~= r;
+	}
+	fuzzyset[] calculate (double value) {
+		fuzzyset[] result;
+		// als resultat erhält man ein fuzzyset:
+		// scharfe eingangsgröße wird jetzt angegeben
+		// die entspricht je regel
+		// einem infuzzy.member wert
+		// dieser enspricht dem wert des outfuzzy.members;
+		foreach (r; ruleset) {
+			fuzzyset res;
+			res.member = r.oname;
+			res.value = r.i(value);
+			result ~= res;
+		}
+		return result;
+	}
+	double gravity (fuzzyset[] fset, double[string] ovalue) {
+		float up = 0;
+		float down =0;
+		float x =0;
+		foreach (r; fset) {
+			up += (r.value*float(ovalue[r.member]));
+			down += r.value;
+		}
+		if (down <= 0) return 0;
+		assert (down > 0, "Division by Zero!");
+		x = up/down;
+		return x;
+	}
+};
+
+void main () {
+	/**
+	*	erzeuge fuzzyset (temperatur = new fuzzyset)
+	* insert members (temperatur.insert (kalt, triangle, intervall und range))
+	* fuzzyset außentemp = temperatur (36);
+	* außentemp.member[warm] == 0.6;
+	*
+	*
+	**/
+	import std.stdio;
+	import std.conv;
+	auto langsam = new fuzzyMember!trapezoid;
+	langsam.setInterval(-5,40);
+	langsam.setMiddle(0,30);
+	langsam.setName("langsame Geschwindigkeit");
+	auto mittel = new fuzzyMember!triangle;
+	mittel.setInterval(30,60);
+	mittel.setMiddle(35,55);
+	mittel.setName("mittlere Geschwindigkeit");
+	auto schnell = new fuzzyMember!trapezoid;
+	schnell.setInterval(55,110);
+	schnell.setMiddle(60,100);
+	schnell.setName("hohe Geschwindigkeit");
+
+	auto near = new fuzzyMember!trapezoid;
+	near.setInterval(-5,40);
+	near.setMiddle(0,30);
+	near.setName("entfernung_gering");
+	auto middle = new fuzzyMember!triangle;
+	middle.setInterval(30,60);
+	middle.setMiddle(35,55);
+	middle.setName("entfernung_mittel");
+	auto far = new fuzzyMember!trapezoid;
+	far.setInterval(55,110);
+	far.setMiddle(60,100);
+	far.setName("entfernung_groß");
+
+	auto bremsleicht = new fuzzyMember!trapezoid;
+	bremsleicht.setInterval (-5,40);
+	bremsleicht.setMiddle(15,35);
+	bremsleicht.setName("brems_leicht");
+	auto bremsmittel = new fuzzyMember!trapezoid;
+	bremsmittel.setInterval (35,75);
+	bremsmittel.setMiddle(40,65);
+	bremsmittel.setName("brems_mittel");
+	auto bremshart = new fuzzyMember!trapezoid;
+	bremshart.setInterval (70,105);
+	bremshart.setMiddle(80,100);
+	bremshart.setName("brems_hart");
+
+	auto bremskraft = new fuzzySet("Bremskraft");
+	bremskraft.insert(bremsleicht);
+	bremskraft.insert(bremsmittel);
+	bremskraft.insert(bremshart);
+	auto geschwindigkeit = new fuzzySet("Geschwindigkeit");
+	geschwindigkeit.insert(langsam);
+	geschwindigkeit.insert(mittel);
+	geschwindigkeit.insert(schnell);
+	auto entfernung = new fuzzySet("Entfernung");
+	entfernung.insert(near);
+	entfernung.insert(middle);
+	entfernung.insert(far);
+
+	auto r = new fuzzyRules;
+	double velo;
+	auto r1 = langsam&far;
+	writeln (r1);
+	r.addrule(langsam, bremsleicht);
+	r.addrule(mittel, bremsmittel);
+	r.addrule(schnell, bremshart);
+version (foo) {
+	uint x;
+	while (x<100) {
+		writef ("%s km/h ", x);
+		auto t = r.calculate(x);
+		double[string] mean;
+		mean["brems_leicht"] = 10;
+		mean["brems_mittel"] = 50;
+		mean["brems_hart"] = 100;
+		auto d = r.gravity(t, mean);
+		writef ("%s ", d);
+		write ("\n");
+		x++;
+	}
+
+
+	auto x =0;
+	while (x<75) {
+		auto cost = price.get(x);
+		writef ("x: %s ", x);
+		write ("\n");
+		x++;
+	}
+}
+}
