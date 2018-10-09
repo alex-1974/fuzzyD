@@ -1,0 +1,5 @@
+name "fuzzy"
+description "Fuzzy logic in D"
+authors "Alexander Leisser"
+license "MIT"
+targetType "library"
