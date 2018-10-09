@@ -8,7 +8,7 @@
 * <a href =""></a>
 **/
 
-module proof_of_concept.fuzzyD;
+module _fuzzy;
 
 /**
 * Fuzzy Typ erlaubt Wahrheitswerte von 0 bis 1

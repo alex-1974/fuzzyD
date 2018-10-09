@@ -1,6 +1,6 @@
-module fuzzyrules;
-import fuzzytype;
-import fuzzyset;
+module fuzzyD.rules;
+import fuzzyD.type;
+import fuzzyD.set;
 
 struct rule {
 	alias fuzzy delegate(double) outf;
