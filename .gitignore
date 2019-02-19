@@ -1,4 +1,5 @@
-fuzzy-test-library
 .git/
 .dub/
 source/_fuzzy.old
+fuzzy-test-library
+docs.json
