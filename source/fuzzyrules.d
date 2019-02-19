@@ -1,7 +1,8 @@
 module fuzzyD.rules;
-import fuzzyD.type;
+import fuzzy.type;
 import fuzzyD.set;
 
+version (foo) {
 struct rule {
 	alias fuzzy delegate(double) outf;
 	outf o;
@@ -14,7 +15,7 @@ struct rule {
 * bei WENN ... UND ... DANN ...
 * WENN wird zu in-fuzzyset = fuzzysetA und fuzzysetB
 **/
-version (foo) {
+
 class fuzzyRules {
 	import std.stdio;
 	rule[] ruleset;
