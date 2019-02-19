@@ -1,5 +1,8 @@
-module fuzzyD.set;
+module fuzzy.set;
+
 import fuzzy.type;
+
+
 version (old) {
 /**
 * Type Fuzzyset erlaubt Set an Wahrheitswerten zwischen 0 bis 1

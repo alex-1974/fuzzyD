@@ -23,5 +23,5 @@
 module fuzzy;
 
 public import fuzzy.type;
-//public import fuzzyset;
+public import fuzzy.set;
 //public import fuzzyrules;

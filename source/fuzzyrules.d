@@ -1,6 +1,6 @@
 module fuzzyD.rules;
 import fuzzy.type;
-import fuzzyD.set;
+import fuzzy.set;
 
 version (foo) {
 struct rule {
