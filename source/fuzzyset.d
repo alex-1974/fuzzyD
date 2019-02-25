@@ -1,8 +1,80 @@
-module fuzzy.set;
+/** **/
+module fuzzyD.set;
 
-import fuzzy.type;
+import fuzzyD.type;
+debug import std.stdio;
 
+/** **/
+class Member (T) {
+    protected Fuzzy _value;
+    /** **/
+    @property auto getVal () {
+        return this._value;
+    }
+    /** Member function **/
+    abstract Fuzzy setVal (T) (T v);
+    /** **/
+    alias getVal this;
+}
 
+/** **/
+class Triangle(T) : Member!T {
+    private T _left, _middle, _right;
+    /** **/
+    this (T) (T left, T middle, T right) {
+        this._left = left;
+        this._middle = middle;
+        this._right = right;
+    }
+    /** **/
+    Fuzzy setVal (T) (T v) {
+        if (this._left >= v || v >= this._right) this._value = Fuzzy(0);
+        else if (v < _middle)   this._value = Fuzzy((v-_left)/(_middle-_left));
+		else if (v == _middle)  this._value = Fuzzy(1.0);
+		else if (v < _right)    this._value = Fuzzy((_right-v)/(_right-_middle));
+        return this._value;
+    }
+}
+unittest {
+    auto cold = new Triangle!double(1.0,2,3);
+    writefln ("cold 1: %s", cold.setVal(1.0));
+    writefln ("cold 2: %s", cold.setVal(2.0));
+    writefln ("cold 3: %s", cold.setVal(3.0));
+    writefln ("cold 1.5: %s", cold.setVal(1.5));
+    writefln ("cold 2.5: %s", cold.setVal(2.5));
+}
+
+/** **/
+class Trapezoid(T) : Member!T {
+    private T _left, _middleLeft, _middleRight, _right;
+    /** **/
+    this (T) (T left, T middleLeft, T middleRight, T right) {
+        this._left = left;
+        this._middleLeft = middleLeft;
+        this._middleRight = middleRight;
+        this._right = right;
+    }
+    /** **/
+    Fuzzy setVal (T) (T v) {
+        if (_left >= v || v >= _right) this._value = Fuzzy(0);
+        else if (_middleLeft <= v && v <= _middleRight) this._value = Fuzzy(1.0);
+        else if (v < _middleLeft)  this._value = Fuzzy((v-_left)/(_middleLeft-_left));
+        //else if (v <= _middleRight) this._value = Fuzzy(1.0);
+        else if (v < _right) this._value = Fuzzy((_right-v)/(_right-_middleRight));
+        return this._value;
+    }
+}
+unittest {
+    auto warm = new Trapezoid!double(1.0,2,3,4);
+    writefln ("warm 1: %s", warm.setVal(1.0));
+    writefln ("warm 2: %s", warm.setVal(2.0));
+    writefln ("warm 3: %s", warm.setVal(3.0));
+    writefln ("warm 4: %s", warm.setVal(4.0));
+    writefln ("warm 1.5: %s", warm.setVal(1.5));
+    writefln ("warm 2.5: %s", warm.setVal(2.5));
+    writefln ("warm 3.5: %s", warm.setVal(3.5));
+
+}
 version (old) {
 /**
 * Type Fuzzyset erlaubt Set an Wahrheitswerten zwischen 0 bis 1

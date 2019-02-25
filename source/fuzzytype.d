@@ -27,7 +27,7 @@ Fuzzy_logic_operators:
       <li><math><mn>1</mn><mo>-</mo><mi>A</mi><mo>if</mo><mi>B</mi><mo>>=</mo><mi>A</mi><mo>and</mo><mi>B</mi><mo>>=</mo><mo>(</mo><mi>1</mi><mo>-</mo><mi>A</mi><mo>)</mo></math></li>
     </ul></p>
 **/
-module fuzzy.type;
+module fuzzyD.type;
 
 import std.traits;
 debug import std.stdio;

@@ -20,8 +20,8 @@
 * <a href =""></a>
 **/
 
-module fuzzy;
+module fuzzyD;
 
-public import fuzzy.type;
-public import fuzzy.set;
+public import fuzzyD.type;
+public import fuzzyD.set;
 //public import fuzzyrules;
