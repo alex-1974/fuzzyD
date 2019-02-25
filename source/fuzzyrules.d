@@ -1,5 +1,76 @@
+/** Fuzzy rules
+    Defuzzyfication:
+
+    <em>Methods of deffuzification</em>
+    <ul>
+        <li>Center of Sums Method (COS)</li>
+        <li>Center of Gravity (COG) / Centroid of Area (COA) Method</li>
+        <li>Center of Area / Bisector of Area Method (BOA)</li>
+        <li>Weighted Average Method</li>
+        <li>Maxima Method</li>
+        <ul>
+            <li>First of Maxima Method (FOM)</li>
+            <li>Last of Maxima Method (LOM)</li>
+            <li>Mean of Maxima Method (MOM)</li>
+        </ul>
+    </ul>
+
+    Center_of_Sums_(COS)_Method:
+
+    <math>
+        <msup><mi>X</mi><mn>*</mn></msup><mo>=</mo>
+        <mfrac>
+            <mrow>
+                <msubsup>
+                    <mo>&sum;</mo>
+                    <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+                    <mi>N</mi>
+                </msubsup>
+                <msub><mi>x</mi><mi>i</mi></msub><mo>&sdot;</mo>
+                <msubsup>
+                    <mo>&sum;</mo>
+                    <mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow>
+                    <mi>n</mi>
+                </msubsup>
+                <msub>
+                    <mi>&micro;</mi>
+                    <msub>
+                        <mi>A</mi>
+                        <mi>k</mi>
+                    </msub>
+                </msub>
+                <mo>(</mo>
+                    <msub><mo>x</mo><mo>i</mo></msub>
+                <mo>)</mo>
+            </mrow>
+            <mrow>
+                <msubsup>
+                    <mo>&sum;</mo>
+                    <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+                    <mi>N</mi>
+                </msubsup>
+                <mspace width="1em"/>
+                <msubsup>
+                    <mo>&sum;</mo>
+                    <mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow>
+                    <mi>n</mi>
+                </msubsup>
+                <msub>
+                    <mi>&micro;</mi>
+                    <msub>
+                        <mi>A</mi>
+                        <mi>k</mi>
+                    </msub>
+                </msub>
+                <mo>(</mo>
+                    <msub><mo>x</mo><mo>i</mo></msub>
+                <mo>)</mo>
+            </mrow>
+        </mfrac>
+    </math>
+**/
 module fuzzyD.rules;
-import fuzzy.type;
+import fuzzyD.type;
 import fuzzyD.set;
 
 version (foo) {
