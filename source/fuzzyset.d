@@ -1,18 +1,25 @@
-/** **/
+/**
+
+TODO:
+    add singleton, bell-shaped and gauss-shaped members
+**/
 module fuzzyD.set;
 
 import fuzzyD.type;
+import std.traits;
 debug import std.stdio;
 
 /** **/
-class Member (T) {
+abstract class Member (T) if(isNumeric!T) {
     protected Fuzzy _value;
     /** **/
-    @property auto getVal () {
+    @property auto getVal () const pure @safe nothrow @nogc {
         return this._value;
     }
-    /** Member function **/
-    abstract Fuzzy setVal (T) (T v);
+    /** Membership function **/
+    abstract Fuzzy setVal (T) (T v) pure @safe;
+    /** **/
+    abstract void setBounds (T) (T[] v);
     /** **/
     alias getVal this;
 }
@@ -21,21 +28,30 @@ class Member (T) {
 class Triangle(T) : Member!T {
     private T _left, _middle, _right;
     /** **/
-    this (T) (T left, T middle, T right) {
-        this._left = left;
-        this._middle = middle;
-        this._right = right;
+    this (T) (T left, T middle, T right) @safe pure nothrow @nogc {
+        setBounds(left, middle, right);
     }
     /** **/
-    Fuzzy setVal (T) (T v) {
+    final Fuzzy setVal (T) (T v) pure @safe {
         if (this._left >= v || v >= this._right) this._value = Fuzzy(0);
         else if (v < _middle)   this._value = Fuzzy((v-_left)/(_middle-_left));
 		else if (v == _middle)  this._value = Fuzzy(1.0);
 		else if (v < _right)    this._value = Fuzzy((_right-v)/(_right-_middle));
         return this._value;
     }
+    /** **/
+    final void setBounds (T) (T left, T middle, T right) @safe pure nothrow @nogc {
+        this._left = left;
+        this._middle = middle;
+        this._right = right;
+    }
 }
-unittest {
+/** **/
+auto triangle (T) (T left, T middle, T right) @safe pure {
+    return new Triangle!T(left, middle, right);
+}
+
+@safe unittest {
     auto cold = new Triangle!double(1.0,2,3);
     writefln ("cold 1: %s", cold.setVal(1.0));
     writefln ("cold 2: %s", cold.setVal(2.0));
@@ -43,28 +59,41 @@ unittest {
     writefln ("cold 1.5: %s", cold.setVal(1.5));
     writefln ("cold 2.5: %s", cold.setVal(2.5));
 }
+@safe unittest {
+    auto hot = triangle(1.0,2,3);
+    writefln ("hot 2.5: %s", hot.setVal(2.5));
+
+}
 
 /** **/
 class Trapezoid(T) : Member!T {
     private T _left, _middleLeft, _middleRight, _right;
     /** **/
-    this (T) (T left, T middleLeft, T middleRight, T right) {
+    this (T) (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
+        setBounds!T(left, middleLeft, middleRight, right);
+    }
+    /** **/
+    final Fuzzy setVal (T) (T v) pure @safe {
+        if (_left >= v || v >= _right) this._value = Fuzzy(0);
+        else if (_middleLeft <= v && v <= _middleRight) this._value = Fuzzy(1.0);
+        else if (v < _middleLeft)  this._value = Fuzzy((v-_left)/(_middleLeft-_left));
+        else if (v < _right) this._value = Fuzzy((_right-v)/(_right-_middleRight));
+        return this._value;
+    }
+    /** **/
+    final void setBounds (T) (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
         this._left = left;
         this._middleLeft = middleLeft;
         this._middleRight = middleRight;
         this._right = right;
     }
-    /** **/
-    Fuzzy setVal (T) (T v) {
-        if (_left >= v || v >= _right) this._value = Fuzzy(0);
-        else if (_middleLeft <= v && v <= _middleRight) this._value = Fuzzy(1.0);
-        else if (v < _middleLeft)  this._value = Fuzzy((v-_left)/(_middleLeft-_left));
-        //else if (v <= _middleRight) this._value = Fuzzy(1.0);
-        else if (v < _right) this._value = Fuzzy((_right-v)/(_right-_middleRight));
-        return this._value;
-    }
 }
-unittest {
+/** **/
+auto trapezoid (T) (T left, T middleLeft, T middleRight, T right) @safe pure {
+    return new Trapezoid!T(left, middleLeft, middleRight, right);
+}
+
+@safe unittest {
     auto warm = new Trapezoid!double(1.0,2,3,4);
     writefln ("warm 1: %s", warm.setVal(1.0));
     writefln ("warm 2: %s", warm.setVal(2.0));
@@ -73,8 +102,21 @@ unittest {
     writefln ("warm 1.5: %s", warm.setVal(1.5));
     writefln ("warm 2.5: %s", warm.setVal(2.5));
     writefln ("warm 3.5: %s", warm.setVal(3.5));
+}
+@safe unittest {
+    auto hot = trapezoid(1.0,2,3,4);
+    writefln ("hot 3.5: %s", hot.setVal(3.5));
 
 }
+
+class Fuzzyset (T) {
+    Member!T[] member;
+}
+
+unittest {
+    auto temp = new Fuzzyset!double;
+}
+
 version (old) {
 /**
 * Type Fuzzyset erlaubt Set an Wahrheitswerten zwischen 0 bis 1
