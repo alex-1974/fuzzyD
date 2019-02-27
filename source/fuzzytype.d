@@ -35,14 +35,16 @@ debug import std.stdio;
 /** Struct representing the fuzzy type
 **/
 struct Fuzzy {
-    double _value = 0.0;
+    private double _value = 0.0;
     /** **/
     this (double value) pure @safe { this.value(value); }
+    /** **/
     @property void value (double prob) pure @safe {
         import std.exception: enforce;
         enforce(0.0 <= _value && _value <= 1.0, "Fuzzy is out of range!");
         this._value = prob;
     }
+    /** **/
     @property auto value () const pure nothrow @safe @nogc { return this._value; }
     alias value this;
     /** logical AND **/
@@ -82,7 +84,7 @@ struct Fuzzy {
 }
 
 /** **/
-auto fuzzy (T) (T value) if (isNumeric!T || isBoolean!T) {
+auto fuzzy (T) (T value)  pure @safe if (isNumeric!T || isBoolean!T) {
     static if (isBoolean!T) {
         return value == true? Fuzzy(1.0):Fuzzy(0.0);
     }

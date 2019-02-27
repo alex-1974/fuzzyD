@@ -33,5 +33,5 @@ See:
 module fuzzyD;
 
 public import fuzzyD.type;
-//public import fuzzyset;
+public import fuzzyD.set;
 //public import fuzzyrules;
