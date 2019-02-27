@@ -1,7 +1,10 @@
 /**
 
 TODO:
-    add singleton, bell-shaped and gauss-shaped members
+    <ul>
+        <li>add singleton, bell-shaped and gauss-shaped members</li>
+        <li>find better name for <em>setBounds</em></li>
+    </ul>
 **/
 module fuzzyD.set;
 
@@ -110,11 +113,38 @@ auto trapezoid (T) (T left, T middleLeft, T middleRight, T right) @safe pure {
 }
 
 class Fuzzyset (T) {
-    Member!T[] member;
+    import std.meta;
+    //alias TypeTuple!(string, Member!T) M;
+    alias Params = AliasSeq!(string, Member!T);
+    Member!T[string] _member;
+    void add (Params...)(Params member) {
+        pragma(msg, "members: ", member.length);
+        static if(member.length == 0) {
+            pragma(msg, "zero");
+            return;
+        }
+        static if (member.length == 1) {
+            pragma(msg, "one");
+            static assert(0, "Wrong number of arguments!");
+            return;
+        }
+        else if(member.length >= 2) {
+            import std.traits;
+            pragma(msg, "multiple");
+            static assert(is(typeof(member[0]) == string));
+            static assert(is(typeof(member[1]) : Member!T));
+            //is(BaseClassesTuple!C1 == AliasSeq!(Object)));
+            this._member[member[0]] = member[1];
+            add(member[2..$]);
+            return;
+        }
+    }
 }
 
 unittest {
+    import std.typecons;
     auto temp = new Fuzzyset!double;
+    temp.add("cold",triangle(1.0,2,3), "warm", trapezoid(4.0,5,6,7), "hot", "fail");
 }
 
 version (old) {
