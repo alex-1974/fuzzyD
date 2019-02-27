@@ -13,16 +13,16 @@ import std.traits;
 debug import std.stdio;
 
 /** **/
-abstract class Member (T) if(isNumeric!T) {
+class Member (T) if(isNumeric!T) {
     protected Fuzzy _value;
     /** **/
     @property auto getVal () const pure @safe nothrow @nogc {
         return this._value;
     }
     /** Membership function **/
-    abstract Fuzzy setVal (T) (T v) pure @safe;
+    abstract Fuzzy setVal (T v) pure @safe;
     /** **/
-    abstract void setBounds (T) (T[] v);
+    void setBounds (T[] v) {}
     /** **/
     alias getVal this;
 }
@@ -31,11 +31,11 @@ abstract class Member (T) if(isNumeric!T) {
 class Triangle(T) : Member!T {
     private T _left, _middle, _right;
     /** **/
-    this (T) (T left, T middle, T right) @safe pure nothrow @nogc {
+    this (T left, T middle, T right) @safe pure nothrow @nogc {
         setBounds(left, middle, right);
     }
     /** **/
-    final Fuzzy setVal (T) (T v) pure @safe {
+    override Fuzzy setVal (T v) pure @safe {
         if (this._left >= v || v >= this._right) this._value = Fuzzy(0);
         else if (v < _middle)   this._value = Fuzzy((v-_left)/(_middle-_left));
 		else if (v == _middle)  this._value = Fuzzy(1.0);
@@ -43,7 +43,7 @@ class Triangle(T) : Member!T {
         return this._value;
     }
     /** **/
-    final void setBounds (T) (T left, T middle, T right) @safe pure nothrow @nogc {
+    void setBounds (T left, T middle, T right) @safe pure nothrow @nogc {
         this._left = left;
         this._middle = middle;
         this._right = right;
@@ -72,11 +72,11 @@ auto triangle (T) (T left, T middle, T right) @safe pure {
 class Trapezoid(T) : Member!T {
     private T _left, _middleLeft, _middleRight, _right;
     /** **/
-    this (T) (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
-        setBounds!T(left, middleLeft, middleRight, right);
+    this (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
+        setBounds(left, middleLeft, middleRight, right);
     }
     /** **/
-    final Fuzzy setVal (T) (T v) pure @safe {
+    override Fuzzy setVal (T v) pure @safe {
         if (_left >= v || v >= _right) this._value = Fuzzy(0);
         else if (_middleLeft <= v && v <= _middleRight) this._value = Fuzzy(1.0);
         else if (v < _middleLeft)  this._value = Fuzzy((v-_left)/(_middleLeft-_left));
@@ -84,7 +84,7 @@ class Trapezoid(T) : Member!T {
         return this._value;
     }
     /** **/
-    final void setBounds (T) (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
+    void setBounds (T left, T middleLeft, T middleRight, T right) pure @safe nothrow @nogc {
         this._left = left;
         this._middleLeft = middleLeft;
         this._middleRight = middleRight;
@@ -115,36 +115,46 @@ auto trapezoid (T) (T left, T middleLeft, T middleRight, T right) @safe pure {
 class Fuzzyset (T) {
     import std.meta;
     //alias TypeTuple!(string, Member!T) M;
-    alias Params = AliasSeq!(string, Member!T);
+    //alias Params = AliasSeq!(string, Member!T);
     Member!T[string] _member;
-    void add (Params...)(Params member) {
-        pragma(msg, "members: ", member.length);
+    /** **/
+    void add (U...)(U member) {
         static if(member.length == 0) {
-            pragma(msg, "zero");
             return;
         }
         static if (member.length == 1) {
-            pragma(msg, "one");
             static assert(0, "Wrong number of arguments!");
             return;
         }
-        else if(member.length >= 2) {
-            import std.traits;
-            pragma(msg, "multiple");
-            static assert(is(typeof(member[0]) == string));
-            static assert(is(typeof(member[1]) : Member!T));
-            //is(BaseClassesTuple!C1 == AliasSeq!(Object)));
+        static if(member.length >= 2) {
+            static assert(is(typeof(member[0]) == string), "Missing name of member!");
+            static assert(is(typeof(member[1]) : Member!T), "Not a valid member!");
             this._member[member[0]] = member[1];
             add(member[2..$]);
             return;
         }
+    }
+    auto set (T value) {
+        foreach (m; this._member) {
+            m.setVal(value);
+        }
+        return _member;
+    }
+    auto get () {
+        return _member;
     }
 }
 
 unittest {
     import std.typecons;
     auto temp = new Fuzzyset!double;
-    temp.add("cold",triangle(1.0,2,3), "warm", trapezoid(4.0,5,6,7), "hot", "fail");
+    temp.add("cold",triangle(1.0,2,3), "warm", trapezoid(2.0,3,4,5));
+    double i = 0.0;
+    do {
+        writefln ("temp %s: %s", i, temp.set(i));
+        i += 0.5;
+    } while (i < 5);
+
 }
 
 version (old) {
